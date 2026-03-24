@@ -1,4 +1,4 @@
-# Projekt-101
+# Projekt-110
 ## Projekt Beschreibung:
 
 In diesem Projekt befassen wir uns mit dem MNIST-Datensatz zur Handschriftenerkennung von Ziffern.
