@@ -1,0 +1,5 @@
+model,train_accuracy,test_accuracy,train_test_gap
+baseline,0.9955,0.9854,0.0101
+dropout,0.9744,0.9858,-0.0114
+weight_decay,0.9839,0.9817,0.0022
+augmentation,0.9751,0.9850,-0.0099

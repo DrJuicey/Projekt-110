@@ -1,5 +1,6 @@
 torch
 torchvision
+tensorflow
 numpy
 matplotlib
 scikit-learn
