@@ -168,7 +168,7 @@ plt.close()
 
 
 
-# 8. visualizion: overfitting
+# 8. visualization: overfitting / generalization gap
 plt.figure(figsize=(8, 5))
 
 plt.bar(labels, [overfitting[l] for l in labels])
@@ -176,11 +176,10 @@ plt.axhline(0.0, color="black", linewidth=1)
 
 plt.xlabel("Model Variant")
 plt.ylabel("Train - Test Accuracy")
-plt.title("Overfitting Comparison")
+plt.title("Overfitting / Generalization Gap")
 plt.grid(axis="y", alpha=0.25)
 
 plt.tight_layout()
-plt.savefig(os.path.join(results_dir, "overfitting.png"))
 plt.savefig(os.path.join(results_dir, "generalization_gap.png"))
 plt.close()
 
@@ -205,7 +204,7 @@ plt.close()
 
 
 
-# 10. print final results
+# 9. print final results
 print("\nFINAL RESULTS")
 for name in models:
     print(
