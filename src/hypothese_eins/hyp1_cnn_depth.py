@@ -1,9 +1,52 @@
 import tensorflow as tf
 from tensorflow import keras
 import matplotlib.pyplot as plt
+from pathlib import Path
+import sys
+from datetime import datetime
+import csv
 
 # ------------------------------------------------------------
-# 1. Load and prepare the MNIST dataset
+# 1. Create timestamp and terminal log and define folder
+# ------------------------------------------------------------
+
+# Create timestamp for this experiment run
+run_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+# Define project folders
+project_root = Path(__file__).resolve().parents[2]
+
+model_dir = project_root / "models" / "hypothese_eins" / run_id
+plot_dir = project_root / "results" / "plots" / "hypothese_eins" / run_id
+log_dir = project_root / "results" / "logs" / "hypothese_eins"
+
+model_dir.mkdir(parents=True, exist_ok=True)
+plot_dir.mkdir(parents=True, exist_ok=True)
+log_dir.mkdir(parents=True, exist_ok=True)
+
+log_file = log_dir / f"training_log_{run_id}.txt"
+
+class Tee:
+    """Writes terminal output both to console and to a log file."""
+
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, data):
+        for file in self.files:
+            file.write(data)
+            file.flush()
+
+    def flush(self):
+        for file in self.files:
+            file.flush()
+
+
+log_handle = open(log_file, "w", encoding="utf-8")
+sys.stdout = Tee(sys.stdout, log_handle)
+
+# ------------------------------------------------------------
+# 2. Load and prepare the MNIST dataset
 # ------------------------------------------------------------
 
 # Load dataset (handwritten digits 0–9)
@@ -26,7 +69,7 @@ x_test = x_test[..., None]
 
 
 # ------------------------------------------------------------
-# 2. Function to create CNN model
+# 3. Function to create CNN model
 #    Only the number of convolutional layers changes
 # ------------------------------------------------------------
 def create_cnn_model(num_conv_layers: int) -> keras.Model:
@@ -115,7 +158,7 @@ def create_cnn_model(num_conv_layers: int) -> keras.Model:
 
 
 # ------------------------------------------------------------
-# 3. Function to train and evaluate the model
+# 4. Function to train and evaluate the model
 # ------------------------------------------------------------
 def train_and_evaluate(num_conv_layers: int,
                        epochs: int = 10,
@@ -156,11 +199,20 @@ def train_and_evaluate(num_conv_layers: int,
     print(f"Test Accuracy: {test_acc:.4f}")
     print(f"Test Loss: {test_loss:.4f}")
 
+    # Save trained model
+    model_dir = Path(__file__).resolve().parents[2] / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    model_path = model_dir / f"hyp1_cnn_depth_{num_conv_layers}conv.keras"
+    model.save(model_path)
+
+    print(f"Model saved to: {model_path}")
+
     return model, history, test_loss, test_acc
 
 
 # ------------------------------------------------------------
-# 4. Run experiments (Hypothesis 1)
+# 5. Run experiments (Hypothesis 1)
 # ------------------------------------------------------------
 
 # Dictionary to store results
@@ -180,7 +232,7 @@ for num_layers in [1, 2, 3]:
 
 
 # ------------------------------------------------------------
-# 5. Print comparison results
+# 6. Print comparison results
 # ------------------------------------------------------------
 print("\n--- Model Comparison ---")
 
@@ -191,9 +243,31 @@ for num_layers, result in results.items():
         f"Test Loss: {result['test_loss']:.4f}"
     )
 
+# ------------------------------------------------------------
+# 7. Save results as CSV
+# ------------------------------------------------------------
+
+csv_path = project_root / "results" / "metrics" / "hyp1_cnn_depth_results.csv"
+csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+with open(csv_path, "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+
+    # Header row
+    writer.writerow(["conv_layers", "test_accuracy", "test_loss"])
+
+    # Data rows
+    for num_layers, result in results.items():
+        writer.writerow([
+            num_layers,
+            result["test_acc"],
+            result["test_loss"]
+        ])
+
+print(f"Results saved to: {csv_path}")
 
 # ------------------------------------------------------------
-# 6. Visualization
+# 8. Visualization
 # ------------------------------------------------------------
 
 # Plot accuracy and loss curves for each model
@@ -210,7 +284,12 @@ for num_layers, result in results.items():
     plt.ylabel("Accuracy")
     plt.legend()
     plt.grid(True)
-    plt.show()
+
+    accuracy_path = plot_dir / f"accuracy_{num_layers}_conv_layers.png"
+    plt.savefig(accuracy_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"Accuracy plot saved to: {accuracy_path}")
 
     # Loss plot
     plt.figure()
@@ -221,6 +300,10 @@ for num_layers, result in results.items():
     plt.ylabel("Loss")
     plt.legend()
     plt.grid(True)
-    plt.show()
 
+    loss_path = plot_dir / f"loss_{num_layers}_conv_layers.png"
+    plt.savefig(loss_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"Loss plot saved to: {loss_path}")
     #Done
